@@ -171,7 +171,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useHead } from 'nuxt/head'
+import { useHead } from 'nuxt'
 import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore'
 
 useHead({

@@ -2,6 +2,18 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
+  ssr: false,
+  nitro: {
+    prerender: {
+      routes: [
+        '/',
+        '/login',
+        '/register',
+        '/movies',
+        '/user'
+      ],
+    },
+  },
   modules: ['@nuxtjs/tailwindcss'],
   runtimeConfig: {
     public: {

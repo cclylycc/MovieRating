@@ -62,16 +62,18 @@
             <div
               v-for="movie in paginatedMovies"
               :key="movie.id"
-              class="flex items-start space-x-4 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              class="flex items-start p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
               @click="selectMovie(movie)"
             >
-              <img
-                :src="movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : '/placeholder.png'"
-                :alt="movie.title"
-                class="w-16 h-24 object-cover rounded"
-              />
-              <div class="flex-1">
-                <h4 class="text-lg font-medium">{{ movie.title }}</h4>
+              <div class="w-16 h-24 flex-shrink-0 mr-4">
+                <img
+                  :src="movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : '/placeholder.png'"
+                  :alt="movie.title"
+                  class="w-full h-full object-cover rounded"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-lg font-medium truncate">{{ movie.title }}</h4>
                 <p class="text-sm text-gray-500">{{ movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown Year' }}</p>
                 <p class="text-sm text-gray-600 line-clamp-2 mt-1">{{ movie.overview || 'No details' }}</p>
               </div>
@@ -169,7 +171,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useHead } from '#head'
 import { getFirestore, collection, query, where, getDocs, addDoc } from 'firebase/firestore'
+
+useHead({
+  title: 'Create Review - MovieRating'
+})
 
 const router = useRouter()
 const db = getFirestore()

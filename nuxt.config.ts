@@ -3,6 +3,16 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   ssr: false,
+  app: {
+    head: {
+      title: 'MovieRating',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { name: 'description', content: '发现精彩电影，分享您的观影体验' }
+      ]
+    }
+  },
   nitro: {
     prerender: {
       routes: [

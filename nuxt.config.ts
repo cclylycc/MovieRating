@@ -9,7 +9,7 @@ export default defineNuxtConfig({
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: '发现精彩电影，分享您的观影体验' }
+        { name: 'description', content: 'Find your movie, share your comments with the world.' }
       ]
     }
   },

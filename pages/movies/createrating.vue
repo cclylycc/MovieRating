@@ -239,7 +239,7 @@ const searchMovie = async () => {
       
       if (data.results && data.results.length > 0) {
         searchResults.value = data.results
-        totalPages.value = Math.min(data.total_pages, 5) // 限制最大页数为5
+        totalPages.value = Math.min(data.total_pages, 10) // 限制最大页数为5
         
         // 将搜索结果保存到 Firebase
         for (const movie of data.results) {

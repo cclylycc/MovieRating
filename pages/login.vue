@@ -67,6 +67,7 @@
 <script setup>
 import { ref } from 'vue'
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import Toast from '~/components/Toast.vue'
 
 const { $auth } = useNuxtApp()
 const router = useRouter()
@@ -80,9 +81,35 @@ const handleLogin = async () => {
     error.value = ''
     await signInWithEmailAndPassword($auth, email.value, password.value)
     router.push('/')
+
+    const toast = document.createElement('div')
+      const vueInstance = createApp(Toast, {
+        message: 'Login Successfully, welcome back!',
+        type: 'success'
+      })
+      document.body.appendChild(toast)
+      vueInstance.mount(toast)
+
+      setTimeout(() => {
+        vueInstance.unmount()
+        document.body.removeChild(toast)
+      }, 3000)
+
   } catch (e) {
     error.value = 'Login failed, please check your email and password'
     console.error('Login error:', e)
+    const toast = document.createElement('div')
+      const vueInstance = createApp(Toast, {
+        message: 'Login failed, please check your email and password',
+        type: 'error'
+      })
+      document.body.appendChild(toast)
+      vueInstance.mount(toast)
+
+      setTimeout(() => {
+        vueInstance.unmount()
+        document.body.removeChild(toast)
+      }, 3000)
   }
 }
 

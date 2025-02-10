@@ -117,10 +117,14 @@ import { ref, onMounted } from 'vue'
 import { createApp } from 'vue'
 import { onAuthStateChanged, updateProfile } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Toast from '~/components/Toast.vue'
+
 const { $auth, $firestore } = useNuxtApp()
 const router = useRouter()
+const route = useRoute()
+const userId = route.params.id
+const isOwnProfile = $auth.currentUser && $auth.currentUser.uid === userId
 
 const activeTab = ref('profile')
 const userProfile = ref({

@@ -10,8 +10,17 @@
               <NuxtLink to="/" class="text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
             </div>
           </div>
-          <!-- Right User -->
-          <div class="flex items-center space-x-4">
+          <!-- Mobile Menu Button -->
+          <div class="md:hidden">
+            <button @click="isMobileMenuOpen = !isMobileMenuOpen" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <!-- Desktop User Menu -->
+          <div class="hidden md:flex items-center space-x-4">
             <template v-if="currentUser">
               <div class="flex items-center space-x-3">
                 <img
@@ -20,7 +29,7 @@
                   class="w-8 h-8 rounded-full"
                 />
                 <span class="text-gray-700">{{ currentUser.displayName || currentUser.email.split('@')[0] }}</span>
-                <NuxtLink to="/user" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">User Center</NuxtLink>
+                <NuxtLink :to="`/user/${currentUser.uid}`" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">User Center</NuxtLink>
                 <NuxtLink to="/movies/createrating" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Create Review</NuxtLink>
                 <button
                   @click="handleLogout"
@@ -35,6 +44,47 @@
               <NuxtLink to="/register" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Register</NuxtLink>
             </template>
           </div>
+        </div>
+      </div>
+      <!-- Mobile Menu -->
+      <div v-if="isMobileMenuOpen" class="md:hidden">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          <NuxtLink to="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Movies</NuxtLink>
+          <NuxtLink to="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
+        </div>
+        <!-- Mobile User Menu -->
+        <div class="pt-4 pb-3 border-t border-gray-200">
+          <template v-if="currentUser">
+            <div class="px-4 flex items-center">
+              <div class="flex-shrink-0">
+                <img
+                  :src="currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + currentUser.email"
+                  :alt="currentUser.displayName || currentUser.email"
+                  class="w-10 h-10 rounded-full"
+                />
+              </div>
+              <div class="ml-3">
+                <div class="text-base font-medium text-gray-800">{{ currentUser.displayName || currentUser.email.split('@')[0] }}</div>
+                <div class="text-sm font-medium text-gray-500">{{ currentUser.email }}</div>
+              </div>
+            </div>
+            <div class="mt-3 px-2 space-y-1">
+              <NuxtLink :to="`/user/${currentUser.uid}`" class="block px-3 py-2 text-gray-600 hover:text-gray-900">User Center</NuxtLink>
+              <NuxtLink to="/movies/createrating" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Create Review</NuxtLink>
+              <button
+                @click="handleLogout"
+                class="block w-full text-left px-3 py-2 text-gray-600 hover:text-gray-900"
+              >
+                Log out
+              </button>
+            </div>
+          </template>
+          <template v-else>
+            <div class="px-2 space-y-1">
+              <NuxtLink to="/login" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Log in</NuxtLink>
+              <NuxtLink to="/register" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Register</NuxtLink>
+            </div>
+          </template>
         </div>
       </div>
     </nav>
@@ -103,10 +153,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { signOut, onAuthStateChanged } from 'firebase/auth'
+import Toast from '~/components/Toast.vue'
 
 const { $auth } = useNuxtApp()
 const router = useRouter()
 const currentUser = ref(null)
+const isMobileMenuOpen = ref(false)
 
 onMounted(() => {
   onAuthStateChanged($auth, (user) => {
@@ -118,6 +170,7 @@ const handleLogout = async () => {
   try {
     await signOut($auth)
     router.push('/login')
+    isMobileMenuOpen.value = false
   } catch (e) {
     console.error('Logout error:', e)
   }

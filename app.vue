@@ -29,7 +29,7 @@
                   class="w-8 h-8 rounded-full"
                 />
                 <span class="text-gray-700">{{ currentUser.displayName || currentUser.email.split('@')[0] }}</span>
-                <NuxtLink :to="`/user/${currentUser.uid}`" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">User Center</NuxtLink>
+                <NuxtLink :to="`/user/${currentUser.uid}`" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Home</NuxtLink>
                 <NuxtLink to="/movies/createrating" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Create Review</NuxtLink>
                 <button
                   @click="handleLogout"
@@ -69,7 +69,7 @@
               </div>
             </div>
             <div class="mt-3 px-2 space-y-1">
-              <NuxtLink :to="`/user/${currentUser.uid}`" class="block px-3 py-2 text-gray-600 hover:text-gray-900">User Center</NuxtLink>
+              <NuxtLink :to="`/user/${currentUser.uid}`" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Home</NuxtLink>
               <NuxtLink to="/movies/createrating" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Create Review</NuxtLink>
               <button
                 @click="handleLogout"

@@ -65,12 +65,37 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import Toast from '~/components/Toast.vue'
 
 const { $auth } = useNuxtApp()
 const router = useRouter()
+
+onMounted(() => {
+  const unsubscribe = $auth.onAuthStateChanged((user) => {
+    if (user) {
+      router.push('/')
+
+      const toast = document.createElement('div')
+      const vueInstance = createApp(Toast, {
+        message: 'You have already logged in.',
+        type: 'error'
+      })
+      document.body.appendChild(toast)
+      vueInstance.mount(toast)
+
+      setTimeout(() => {
+        vueInstance.unmount()
+        document.body.removeChild(toast)
+      }, 3000)
+    }
+  })
+
+  onUnmounted(() => {
+    unsubscribe()
+  })
+})
 
 const email = ref('')
 const password = ref('')

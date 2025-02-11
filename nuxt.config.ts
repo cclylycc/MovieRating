@@ -20,7 +20,8 @@ export default defineNuxtConfig({
         '/login',
         '/register',
         '/movies',
-        '/user'
+        '/user',
+        '/review'
       ],
     },
   },

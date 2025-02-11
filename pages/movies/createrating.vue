@@ -2,7 +2,6 @@
   <div class="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <h1 class="text-3xl font-bold mb-6">Create Review</h1>
     <div class="bg-white rounded-lg shadow p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
-      <!-- 步骤指示器 -->
       <div class="mb-8">
         <div class="flex items-center justify-between w-full">
           <div v-for="(step, index) in steps" :key="index" class="flex items-center flex-1">

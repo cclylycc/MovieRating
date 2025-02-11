@@ -6,7 +6,7 @@
           <div class="flex items-center space-x-8">
             <NuxtLink to="/" class="text-2xl font-bold text-gray-800">MovieRating</NuxtLink>
             <div class="hidden md:flex space-x-4">
-              <NuxtLink to="/" class="text-gray-600 hover:text-gray-900">Movies</NuxtLink>
+              <NuxtLink to="/review" class="text-gray-600 hover:text-gray-900">Review</NuxtLink>
               <NuxtLink to="/" class="text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
             </div>
           </div>
@@ -153,7 +153,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { signOut, onAuthStateChanged } from 'firebase/auth'
-import Toast from '~/components/Toast.vue'
 
 const { $auth } = useNuxtApp()
 const router = useRouter()

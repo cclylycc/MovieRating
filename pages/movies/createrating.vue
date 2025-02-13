@@ -72,7 +72,17 @@
                 />
               </div>
               <div class="flex-1 min-w-0">
-                <h4 class="text-lg font-medium truncate">{{ movie.title }}</h4>
+                <h4 class="text-lg font-medium truncate flex items-center">
+                  {{ movie.title }}
+                  <span
+                    :class="[
+                      'ml-2 text-xs px-2 py-1 rounded-full',
+                      movie.tmdb_id ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                    ]"
+                  >
+                    {{ movie.tmdb_id ? 'from MovieRating' : 'from TMDB' }}
+                  </span>
+                </h4>
                 <p class="text-sm text-gray-500">{{ movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown Year' }}</p>
                 <p class="text-sm text-gray-600 line-clamp-2 mt-1">{{ movie.overview || 'No details' }}</p>
               </div>
@@ -217,13 +227,18 @@ const searchMovie = async () => {
   hasSearched.value = true
 
   try {
-    // Try to find Movie info from firebase
+    // Try to find Movie info from firebase by title
     const moviesRef = collection(db, 'movies')
-    const q = query(moviesRef, where('title', '>=', searchQuery.value), where('title', '<=', searchQuery.value + '\uf8ff'))
-    const querySnapshot = await getDocs(q)
+    const searchLower = searchQuery.value.toLowerCase()
+    const titleQuery = query(
+      moviesRef,
+      where('title_lower', '>=', searchLower),
+      where('title_lower', '<=', searchLower + '\uf8ff')
+    )
+    const titleQuerySnapshot = await getDocs(titleQuery)
     
-    if (!querySnapshot.empty) {
-      searchResults.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+    if (!titleQuerySnapshot.empty) {
+      searchResults.value = titleQuerySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       totalPages.value = Math.ceil(searchResults.value.length / 5)
     } else {
       // if can not find from firebase, search from TMDb
@@ -236,16 +251,24 @@ const searchMovie = async () => {
         searchResults.value = data.results
         totalPages.value = Math.min(data.total_pages, 10) // Max page 10
         
-        // Save movie info to firebase
+        // Save new movies to firebase
         for (const movie of data.results) {
-          await addDoc(collection(db, 'movies'), {
-            tmdb_id: movie.id,
-            title: movie.title,
-            overview: movie.overview,
-            poster_path: movie.poster_path,
-            release_date: movie.release_date,
-            vote_average: movie.vote_average
-          })
+          // Check if movie already exists by tmdb_id
+          const tmdbQuery = query(moviesRef, where('tmdb_id', '==', movie.id))
+          const tmdbQuerySnapshot = await getDocs(tmdbQuery)
+          
+          if (tmdbQuerySnapshot.empty) {
+            // Only save if movie doesn't exist
+            await addDoc(collection(db, 'movies'), {
+              tmdb_id: movie.id,
+              title: movie.title,
+              title_lower: movie.title.toLowerCase(), // 添加小写标题字段用于搜索
+              overview: movie.overview,
+              poster_path: movie.poster_path,
+              release_date: movie.release_date,
+              vote_average: movie.vote_average
+            })
+          }
         }
       }
     }

@@ -14,7 +14,7 @@
       </div>
     </div>
 
-    <!-- 用户评论部分 -->
+    <!-- User comments -->
     <div class="reviews-section">
       <h2>Comments</h2>
       <div class="reviews-list" v-if="reviews.length">
@@ -51,7 +51,7 @@ const movie = ref({
 })
 const reviews = ref([])
 
-// 获取电影详情
+// fetchMovieDetails
 const fetchMovieDetails = async () => {
   try {
     const movie_info = await getDoc(doc($firestore, 'movies', movieId))
@@ -64,10 +64,10 @@ const fetchMovieDetails = async () => {
       movie.value.tmdb_id = movieData.tmdb_id || ''
       movie.value.vote_average = movieData.vote_average || ''
     }else{
-      console.log('电影不存在')
+      console.log('Movie does not exist')
     }
   } catch (error) {
-    console.error('获取电影详情失败:', error)
+    console.error('Failed to fetch Movie details:', error)
   }
 }
 

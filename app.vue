@@ -7,7 +7,6 @@
             <NuxtLink to="/" class="text-2xl font-bold text-gray-800">MovieRating</NuxtLink>
             <div class="hidden md:flex space-x-4">
               <NuxtLink to="/movies" class="text-gray-600 hover:text-gray-900">Movies</NuxtLink>
-              <NuxtLink to="/" class="text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
             </div>
           </div>
           <!-- Mobile Menu Button -->
@@ -50,7 +49,6 @@
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
           <NuxtLink to="/movies" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Movies</NuxtLink>
-          <NuxtLink to="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
         </div>
         <!-- Mobile User Menu -->
         <div class="pt-4 pb-3 border-t border-gray-200">

@@ -1,6 +1,28 @@
 <template>
   <div class="container mx-auto py-8 px-4">
-    <h1 class="text-3xl font-bold mb-6">Movie List</h1>
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold">Movies</h1>
+      
+      <!-- Sort Controls -->
+      <div class="flex space-x-4">
+        <select 
+          v-model="sortField" 
+          @change="handleSortChange"
+          class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="release_date">Release Date</option>
+          <option value="vote_average">Rating</option>
+        </select>
+        <select 
+          v-model="sortDirection" 
+          @change="handleSortChange"
+          class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="desc">Descending</option>
+          <option value="asc">Ascending</option>
+        </select>
+      </div>
+    </div>
 
     <!-- Movie List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -59,6 +81,8 @@ const currentPage = ref(1)
 const totalPages = ref(0)
 const lastVisible = ref(null)
 const pageSize = 9
+const sortField = ref('release_date')
+const sortDirection = ref('desc')
 
 // Fetch movies lists
 const fetchMovies = async () => {
@@ -67,9 +91,9 @@ const fetchMovies = async () => {
     let q
 
     if (lastVisible.value && currentPage.value > 1) {
-      q = query(moviesRef, orderBy('title'), startAfter(lastVisible.value), limit(pageSize))
+      q = query(moviesRef, orderBy(sortField.value, sortDirection.value), startAfter(lastVisible.value), limit(pageSize))
     } else {
-      q = query(moviesRef, orderBy('title'), limit(pageSize))
+      q = query(moviesRef, orderBy(sortField.value, sortDirection.value), limit(pageSize))
     }
 
     const querySnapshot = await getDocs(q)
@@ -97,6 +121,13 @@ const changePage = async (page) => {
   if (page === 1) {
     lastVisible.value = null
   }
+  await fetchMovies()
+}
+
+// handle sort change
+const handleSortChange = async () => {
+  currentPage.value = 1
+  lastVisible.value = null
   await fetchMovies()
 }
 

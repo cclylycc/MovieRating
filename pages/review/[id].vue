@@ -7,8 +7,8 @@
       <div class="movie-info">
         <h1>{{ movie.title }}</h1>
         <div class="rating">
-          <span class="vote-average">评分: {{ movie.vote_average }}/10</span>
-          <span class="release-date">发布日期: {{ formatDate(movie.release_date) }}</span>
+          <span class="vote-average">Rate: {{ movie.vote_average }}/10</span>
+          <span class="release-date">Release Date: {{ formatDate(movie.release_date) }}</span>
         </div>
         <p class="overview">{{ movie.overview }}</p>
       </div>
@@ -16,19 +16,19 @@
 
     <!-- 用户评论部分 -->
     <div class="reviews-section">
-      <h2>用户评论</h2>
+      <h2>Comments</h2>
       <div class="reviews-list" v-if="reviews.length">
         <div v-for="review in reviews" :key="review.id" class="review-item">
           <div class="review-header">
             <span class="user-name">{{ review.userName }}</span>
-            <span class="review-rating">评分: {{ review.rating }}/5</span>
+            <span class="review-rating">Scores: {{ review.rating }}/5</span>
           </div>
           <p class="review-content">{{ review.content }}</p>
           <span class="review-date">{{ formatDate(review.createdAt) }}</span>
         </div>
       </div>
       <div v-else class="no-reviews">
-        暂无评论
+        Nothing to tell
       </div>
     </div>
   </div>

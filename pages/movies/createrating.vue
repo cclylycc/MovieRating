@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <!-- 第一步：搜索电影 -->
+      <!-- Step 1：Search Movie -->
       <div v-if="currentStep === 0" class="space-y-6">
         <div>
           <label for="movieSearch" class="block text-sm font-medium text-gray-700">Search Movie</label>
@@ -54,7 +54,7 @@
           </div>
         </div>
 
-        <!-- 搜索结果列表 -->
+        <!-- Search Results -->
         <div v-if="searchResults.length > 0" class="space-y-4">
           <h3 class="text-lg font-medium">Results</h3>
           <div class="grid grid-cols-1 gap-4">
@@ -79,7 +79,7 @@
             </div>
           </div>
           
-          <!-- 分页控制器 -->
+          <!-- Pages -->
           <div v-if="totalPages > 1" class="flex justify-center items-center space-x-2 mt-4">
             <button
               @click="changePage(currentPage - 1)"
@@ -118,11 +118,11 @@
         </div>
       </div>
 
-      <!-- 第二步和第三步的占位 -->
+      <!-- Step 2 / 3 -->
       <div v-else>
-        <!-- 第二步：评分 -->
+        <!-- Step 2 Score -->
         <div v-if="currentStep === 1" class="space-y-6">
-          <!-- 已选择的电影信息 -->
+          <!-- Chosen movie -->
           <div v-if="selectedMovie" class="bg-gray-50 rounded-lg p-4 flex items-start space-x-4">
             <img
               :src="selectedMovie.poster_path ? `https://image.tmdb.org/t/p/w92${selectedMovie.poster_path}` : '/placeholder.png'"
@@ -131,21 +131,20 @@
             />
             <div class="flex-1">
               <h3 class="text-lg font-medium">{{ selectedMovie.title }}</h3>
-              <p class="text-sm text-gray-500">{{ selectedMovie.release_date ? new Date(selectedMovie.release_date).getFullYear() : '未知年份' }}</p>
-              <p class="text-sm text-gray-600 mt-2 line-clamp-2">{{ selectedMovie.overview || '暂无简介' }}</p>
+              <p class="text-sm text-gray-500">{{ selectedMovie.release_date ? new Date(selectedMovie.release_date).getFullYear() : 'Unknown Year' }}</p>
+              <p class="text-sm text-gray-600 mt-2 line-clamp-2">{{ selectedMovie.overview || 'No details' }}</p>
             </div>
           </div>
-          <!-- 评分组件将在这里添加 -->
-          <p class="text-gray-500 text-center">评分功能开发中...</p>
+          <p class="text-gray-500 text-center">Developing...</p>
         </div>
 
-        <!-- 第三步：评论 -->
+        <!-- Step 3 Comments -->
         <div v-else-if="currentStep === 2" class="space-y-6">
-          <p class="text-gray-500 text-center">评论功能开发中...</p>
+          <p class="text-gray-500 text-center">Developing...</p>
         </div>
       </div>
 
-      <!-- 导航按钮 -->
+      <!-- Navi -->
       <div class="flex justify-between mt-8">
         <button
           v-if="currentStep > 0"
@@ -160,7 +159,7 @@
           @click="currentStep++"
           class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          下一步
+          Next Step
         </button>
       </div>
     </div>
@@ -179,26 +178,23 @@ useHead({
 const router = useRouter()
 const db = getFirestore()
 
-// 步骤配置
 const steps = ['Choose Movie', 'Rate', 'Comment']
 const currentStep = ref(0)
 
-// 电影搜索相关
 const searchQuery = ref('')
 const searchResults = ref([])
 const isSearching = ref(false)
 const hasSearched = ref(false)
 const selectedMovie = ref(null)
 
-// TMDb API 配置
+// TMDb API
 const TMDB_API_KEY = '05498067b8f3b73c9b52711db7826e7e'
 const TMDB_API_URL = 'https://api.themoviedb.org/3'
 
-// 评分相关
+// Comments
 const rating = ref(0)
 const comment = ref('')
 
-// 控制是否可以进行下一步
 const canProceed = computed(() => {
   switch (currentStep.value) {
     case 0:
@@ -212,7 +208,7 @@ const canProceed = computed(() => {
   }
 })
 
-// 搜索电影
+// Search Movie
 const searchMovie = async () => {
   if (!searchQuery.value.trim() || isSearching.value) return
 
@@ -221,7 +217,7 @@ const searchMovie = async () => {
   hasSearched.value = true
 
   try {
-    // 首先在 Firebase 中搜索
+    // Try to find Movie info from firebase
     const moviesRef = collection(db, 'movies')
     const q = query(moviesRef, where('title', '>=', searchQuery.value), where('title', '<=', searchQuery.value + '\uf8ff'))
     const querySnapshot = await getDocs(q)
@@ -230,7 +226,7 @@ const searchMovie = async () => {
       searchResults.value = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
       totalPages.value = Math.ceil(searchResults.value.length / 5)
     } else {
-      // 如果 Firebase 中没有找到，则从 TMDb API 获取
+      // if can not find from firebase, search from TMDb
       const response = await fetch(
         `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(searchQuery.value)}&language=en-US&page=${currentPage.value}`
       )
@@ -238,9 +234,9 @@ const searchMovie = async () => {
       
       if (data.results && data.results.length > 0) {
         searchResults.value = data.results
-        totalPages.value = Math.min(data.total_pages, 10) // 限制最大页数为5
+        totalPages.value = Math.min(data.total_pages, 10) // Max page 10
         
-        // 将搜索结果保存到 Firebase
+        // Save movie info to firebase
         for (const movie of data.results) {
           await addDoc(collection(db, 'movies'), {
             tmdb_id: movie.id,
@@ -260,22 +256,21 @@ const searchMovie = async () => {
   }
 }
 
-// 选择电影
+// select movie
 const selectMovie = (movie) => {
   selectedMovie.value = movie
   currentStep.value++
 }
 
-// 分页相关
+// pages
 const currentPage = ref(1)
 const totalPages = ref(1)
 
-// 切换页码
+// change pages
 const changePage = (page) => {
   currentPage.value = page
   searchMovie()
 }
 
-// 计算当前页的电影数据
 const paginatedMovies = computed(() => searchResults.value)
 </script>

@@ -1,8 +1,8 @@
 <template>
   <div class="container mx-auto py-8 px-4">
-    <h1 class="text-3xl font-bold mb-6">电影列表</h1>
+    <h1 class="text-3xl font-bold mb-6">Movie List</h1>
 
-    <!-- 电影列表 -->
+    <!-- Movie List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="movie in movies" :key="movie.id" class="bg-white rounded-lg shadow overflow-hidden">
         <img 
@@ -21,7 +21,7 @@
             :to="`/review/${movie.id}`"
             class="inline-block bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
           >
-            查看详情
+            More Info
           </NuxtLink>
         </div>
       </div>
@@ -34,7 +34,7 @@
         :disabled="currentPage === 1"
         class="px-4 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        上一页
+      Previous page
       </button>
       <span class="px-4 py-2">{{ currentPage }} / {{ totalPages }}</span>
       <button 
@@ -42,7 +42,7 @@
         :disabled="currentPage === totalPages"
         class="px-4 py-2 border rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        下一页
+        Next Page
       </button>
     </div>
   </div>
@@ -54,14 +54,13 @@ import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase
 
 const { $firestore } = useNuxtApp()
 
-// 状态变量
 const movies = ref([])
 const currentPage = ref(1)
 const totalPages = ref(0)
 const lastVisible = ref(null)
-const pageSize = 10
+const pageSize = 9
 
-// 获取电影列表
+// Fetch movies lists
 const fetchMovies = async () => {
   try {
     const moviesRef = collection($firestore, 'movies')
@@ -87,11 +86,11 @@ const fetchMovies = async () => {
     const totalDocs = await getDocs(collection($firestore, 'movies'))
     totalPages.value = Math.ceil(totalDocs.size / pageSize)
   } catch (error) {
-    console.error('获取电影列表失败:', error)
+    console.error('Failed to load movies:', error)
   }
 }
 
-// 切换页面
+// change pages
 const changePage = async (page) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page

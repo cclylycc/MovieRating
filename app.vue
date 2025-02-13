@@ -6,7 +6,7 @@
           <div class="flex items-center space-x-8">
             <NuxtLink to="/" class="text-2xl font-bold text-gray-800">MovieRating</NuxtLink>
             <div class="hidden md:flex space-x-4">
-              <NuxtLink to="/review" class="text-gray-600 hover:text-gray-900">Review</NuxtLink>
+              <NuxtLink to="/movies" class="text-gray-600 hover:text-gray-900">Movies</NuxtLink>
               <NuxtLink to="/" class="text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
             </div>
           </div>
@@ -29,7 +29,7 @@
                   class="w-8 h-8 rounded-full"
                 />
                 <span class="text-gray-700">{{ currentUser.displayName || currentUser.email.split('@')[0] }}</span>
-                <NuxtLink :to="`/user/${currentUser.uid}`" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Home</NuxtLink>
+                <NuxtLink :to="`/user/${currentUser.uid}`" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">My</NuxtLink>
                 <NuxtLink to="/movies/createrating" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Create Review</NuxtLink>
                 <button
                   @click="handleLogout"
@@ -49,7 +49,7 @@
       <!-- Mobile Menu -->
       <div v-if="isMobileMenuOpen" class="md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
-          <NuxtLink to="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Movies</NuxtLink>
+          <NuxtLink to="/movies" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Movies</NuxtLink>
           <NuxtLink to="/" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Top Rated</NuxtLink>
         </div>
         <!-- Mobile User Menu -->
@@ -69,7 +69,7 @@
               </div>
             </div>
             <div class="mt-3 px-2 space-y-1">
-              <NuxtLink :to="`/user/${currentUser.uid}`" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Home</NuxtLink>
+              <NuxtLink :to="`/user/${currentUser.uid}`" class="block px-3 py-2 text-gray-600 hover:text-gray-900">My</NuxtLink>
               <NuxtLink to="/movies/createrating" class="block px-3 py-2 text-gray-600 hover:text-gray-900">Create Review</NuxtLink>
               <button
                 @click="handleLogout"

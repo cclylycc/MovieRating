@@ -24,6 +24,38 @@
       </div>
     </div>
 
+    <!-- Search Box -->
+    <div class="relative">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search movies..."
+        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        @input="handleSearch"
+      />
+      <button
+        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </button>
+      
+      <!-- Search Results Dropdown -->
+      <div v-if="searchResults.length > 0" class="absolute z-50 w-full mt-2 bg-white rounded-lg shadow-lg max-h-96 overflow-y-auto">
+        <div v-for="movie in searchResults" :key="movie.id" @click="navigateToReview(movie.id)" class="p-4 hover:bg-gray-50 cursor-pointer border-b last:border-b-0">
+          <div class="flex space-x-4">
+            <img :src="movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : '/placeholder.png'" :alt="movie.title" class="w-16 h-24 object-cover rounded" />
+            <div class="flex-1">
+              <h4 class="font-medium text-gray-900">{{ movie.title }}</h4>
+              <p class="text-sm text-gray-500 mb-1">{{ movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown Year' }}</p>
+              <p class="text-sm text-gray-600 line-clamp-2">{{ movie.overview }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Movie List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div v-for="movie in movies" :key="movie.id" class="bg-white rounded-lg shadow overflow-hidden">
@@ -84,6 +116,18 @@ const pageSize = 9
 const sortField = ref('release_date')
 const sortDirection = ref('desc')
 
+const searchQuery = ref('')
+const searchResults = ref([])
+
+// Debounce function
+const debounce = (fn, delay) => {
+  let timeoutId
+  return (...args) => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => fn(...args), delay)
+  }
+}
+
 // Fetch movies lists
 const fetchMovies = async () => {
   try {
@@ -131,7 +175,45 @@ const handleSortChange = async () => {
   await fetchMovies()
 }
 
-// 组件挂载时获取数据
+// Search movies function
+const handleSearch = debounce(async () => {
+  if (!searchQuery.value.trim()) {
+    searchResults.value = []
+    return
+  }
+
+  try {
+    const moviesRef = collection($firestore, 'movies')
+    const searchTerms = searchQuery.value.toLowerCase().split(/\s+/)
+    
+    // get all the movies
+    const allMoviesQuery = query(moviesRef, limit(50))
+    const querySnapshot = await getDocs(allMoviesQuery)
+    
+    // filter the movies
+    const filteredMovies = querySnapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        title: doc.data().title || ''
+      }))
+      .filter(movie => {
+        const movieTitle = movie.title.toLowerCase()
+        return searchTerms.every(term => movieTitle.includes(term))
+      })
+      .slice(0, 5)  // 5 movies can be more
+    
+    searchResults.value = filteredMovies
+  } catch (error) {
+    console.error('Error searching movies:', error)
+    searchResults.value = []
+  }
+}, 300)
+
+const navigateToReview = (movieId) => {
+  navigateTo(`/review/${movieId}`)
+}
+
 onMounted(() => {
   fetchMovies()
 })

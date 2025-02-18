@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <!-- Welcome Banner -->
     <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-8">
-      <h1 class="text-4xl font-bold mb-4">Welcome to MovieRating V1.0.2.13.1</h1>
+      <h1 class="text-4xl font-bold mb-4">Welcome to MovieRating V1.0.2.18</h1>
       <p class="text-xl">Discover great movies, share your viewing experience</p>
     </div>
 

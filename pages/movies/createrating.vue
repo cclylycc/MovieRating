@@ -4,29 +4,27 @@
     <div class="bg-white rounded-lg shadow p-4 sm:p-6 lg:p-8 max-w-3xl mx-auto">
       <div class="mb-8">
         <div class="flex items-center justify-between w-full">
-          <div v-for="(step, index) in steps" :key="index" class="flex items-center flex-1">
-            <div
-              class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              :class="{
-                'bg-blue-500 text-white': currentStep >= index,
-                'bg-gray-200 text-gray-500': currentStep < index
-              }"
-            >
-              {{ index + 1 }}
+          <div v-for="(step, index) in steps" :key="index" class="flex flex-col items-center flex-1 gap-1">
+            <div class="flex items-center justify-center w-full mb-2">
+              <div
+                class="relative w-full text-center h-1 mx-4"
+                :class="{
+                  'bg-blue-500': currentStep >= index,
+                  'bg-gray-200': currentStep < index
+                }"
+              >
+                {{ index + 1 }}
+                {{ step }}
+              </div>
+              <div
+                v-if="index < steps.length - 1"
+                class="h-1 flex-1 mx-4"
+                :class="{
+                  'bg-blue-500': currentStep > index,
+                  'bg-gray-200': currentStep <= index
+                }"
+              ></div>
             </div>
-            <div
-              v-if="index < steps.length - 1"
-              class="h-1 flex-1 mx-4"
-              :class="{
-                'bg-blue-500': currentStep > index,
-                'bg-gray-200': currentStep <= index
-              }"
-            ></div>
-          </div>
-        </div>
-        <div class="flex justify-between mt-2 w-full">
-          <div v-for="(step, index) in steps" :key="index" class="text-sm text-gray-500 text-center flex-1">
-            {{ step }}
           </div>
         </div>
       </div>
@@ -35,21 +33,54 @@
       <div v-if="currentStep === 0" class="space-y-6">
         <div>
           <label for="movieSearch" class="block text-sm font-medium text-gray-700">Search Movie</label>
-          <div class="mt-1 flex space-x-3">
+          <div class="mt-1 flex space-x-3 w-full max-w-2xl mx-auto">
             <input
               type="text"
               id="movieSearch"
               v-model="searchQuery"
-              class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="block flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               placeholder="Find your movie..."
               @keyup.enter="searchMovie"
             />
             <button
               @click="searchMovie"
-              class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              class="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 whitespace-nowrap"
               :disabled="isSearching"
             >
-              {{ isSearching ? 'Searing...' : 'Search' }}
+              {{ isSearching ? 'Searching...' : 'Search' }}
+            </button>
+          </div>
+          
+          <!-- Pages -->
+          <div v-if="totalPages > 1" class="flex justify-center items-center space-x-4 mt-6">
+            <button
+              @click="changePage(currentPage - 1)"
+              :disabled="currentPage === 1"
+              class="px-4 py-2 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Previous
+            </button>
+            <div class="flex space-x-2">
+              <button
+                v-for="page in totalPages"
+                :key="page"
+                @click="changePage(page)"
+                :class="[
+                  'px-4 py-2 rounded-md text-sm font-medium',
+                  currentPage === page
+                    ? 'bg-blue-500 text-white'
+                    : 'border hover:bg-gray-50'
+                ]"
+              >
+                {{ page }}
+              </button>
+            </div>
+            <button
+              @click="changePage(currentPage + 1)"
+              :disabled="currentPage === totalPages"
+              class="px-4 py-2 border rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            >
+              Next
             </button>
           </div>
         </div>
@@ -57,21 +88,21 @@
         <!-- Search Results -->
         <div v-if="searchResults.length > 0" class="space-y-4">
           <h3 class="text-lg font-medium">Results</h3>
-          <div class="grid grid-cols-1 gap-4">
+          <div class="grid grid-cols-1 gap-4 max-w-2xl mx-auto">
             <div
               v-for="movie in paginatedMovies"
               :key="movie.id"
-              class="flex items-start p-4 border rounded-lg hover:bg-gray-50 cursor-pointer"
+              class="flex items-center p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors duration-200"
               @click="selectMovie(movie)"
             >
-              <div class="w-16 h-24 flex-shrink-0 mr-4">
+              <div class="w-20 h-30 flex-shrink-0 mr-6">
                 <img
                   :src="movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : '/placeholder.png'"
                   :alt="movie.title"
-                  class="w-full h-full object-cover rounded"
+                  class="w-full h-full object-cover rounded shadow-sm"
                 />
               </div>
-              <div class="flex-1 min-w-0">
+              <div class="flex-1 min-w-0 space-y-2">
                 <h4 class="text-lg font-medium truncate flex items-center">
                   {{ movie.title }}
                   <span
@@ -84,7 +115,7 @@
                   </span>
                 </h4>
                 <p class="text-sm text-gray-500">{{ movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown Year' }}</p>
-                <p class="text-sm text-gray-600 line-clamp-2 mt-1">{{ movie.overview || 'No details' }}</p>
+                <p class="text-sm text-gray-600 line-clamp-2">{{ movie.overview || 'No details' }}</p>
               </div>
             </div>
           </div>

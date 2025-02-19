@@ -14,7 +14,7 @@
       </div>
     </div>
 
-      <!--User comments --> 
+    <!-- Comments-->
     <div class="reviews-section">
       <h2>Comments</h2>
       <div class="reviews-list" v-if="reviews.length > 0">
@@ -73,8 +73,8 @@ const fetchMovieDetails = async () => {
 const formatDate = (timestamp) => {
     if (!timestamp) return ''; 
   try {
-    const date = timestamp.toDate(); /
-    return date.toLocaleDateString('es-ES', { 
+    const date = timestamp.toDate(); 
+    return date.toLocaleDateString([], { 
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -85,7 +85,7 @@ const formatDate = (timestamp) => {
   }
 };
 
-//reviews en tiempo real.
+//reviews en tiempo real
 onMounted(() => {
 
   fetchMovieDetails() 

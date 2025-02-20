@@ -103,6 +103,46 @@
           </form>
         </div>
 
+        <!-- Reviews -->
+        <div v-else-if="activeTab === 'reviews'" class="space-y-6">
+          <h3 class="text-2xl font-bold text-gray-800 mb-6">My Reviews</h3>
+          <div v-if="reviews.length > 0" class="space-y-6">
+            <div v-for="review in paginatedReviews" :key="review.id" class="bg-gray-50 rounded-lg p-6 space-y-4">
+              <div class="flex justify-between items-start">
+                <h4 class="text-xl font-semibold text-gray-800">{{ review.movieTitle }}</h4>
+                <div class="flex items-center">
+                  <span class="text-yellow-500 mr-1">★</span>
+                  <span class="text-gray-600">{{ review.rating }}/5</span>
+                </div>
+              </div>
+              <p class="text-gray-600">{{ review.comment }}</p>
+              <div class="text-sm text-gray-500">{{ formatDate(review.createdAt) }}</div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-center space-x-4 mt-6">
+              <button
+                @click="currentPage--"
+                :disabled="currentPage === 1"
+                class="px-4 py-2 text-sm text-gray-600 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span class="px-4 py-2 text-sm text-gray-600">{{ currentPage }} / {{ totalPages }}</span>
+              <button
+                @click="currentPage++"
+                :disabled="currentPage >= totalPages"
+                class="px-4 py-2 text-sm text-gray-600 border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+          <div v-else class="text-center text-gray-600 py-12">
+            <p class="text-xl">No reviews yet</p>
+          </div>
+        </div>
+
         <!-- Others -->
         <div v-else class="text-center text-gray-600 py-12">
           <p class="text-xl">This feature is under development...</p>
@@ -113,10 +153,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { createApp } from 'vue'
 import { onAuthStateChanged, updateProfile } from 'firebase/auth'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, setDoc, getDoc, collection, query, where, getDocs, orderBy } from 'firebase/firestore'
 import { useRouter, useRoute } from 'vue-router'
 import Toast from '~/components/Toast.vue'
 
@@ -134,6 +174,23 @@ const userProfile = ref({
   gender: '',
   birthDate: ''
 })
+
+// Reviews pagination
+const reviews = ref([])
+const currentPage = ref(1)
+const itemsPerPage = 5
+
+const totalPages = computed(() => Math.ceil(reviews.value.length / itemsPerPage))
+const paginatedReviews = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return reviews.value.slice(start, end)
+})
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  return new Date(dateString).toLocaleDateString()
+}
 
 onMounted(() => {
   onAuthStateChanged($auth, async (user) => {
@@ -155,8 +212,48 @@ onMounted(() => {
           userProfile.value.gender = userData.gender || ''
           userProfile.value.birthDate = userData.birthDate || ''
         }
+
+        // Fetch user's reviews with movie details
+        const reviewsQuery = query(
+          collection($firestore, 'reviews'),
+          where('userId', '==', userId),
+          orderBy('createdAt', 'desc')
+        )
+        const reviewsSnapshot = await getDocs(reviewsQuery)
+        const reviewsData = reviewsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+
+        // Fetch movie details for each review
+        const reviewsWithMovies = await Promise.all(
+          reviewsData.map(async (review) => {
+            if (!review || !review.movieId) return null
+
+            try {
+              const movieDoc = await getDoc(doc($firestore, 'movies', review.movieId))
+              if (movieDoc.exists()) {
+                const movieData = movieDoc.data()
+                return {
+                  ...review,
+                  movieTitle: movieData?.title || 'Unknown Movie',
+                  moviePoster: movieData?.poster_path || ''
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching movie details:', error)
+            }
+            return {
+              ...review,
+              movieTitle: 'Unknown Movie',
+              moviePoster: ''
+            }
+          })
+        )
+
+        reviews.value = reviewsWithMovies.filter(review => review !== null)
       } catch (error) {
-        console.error('Failed to load Info:', error)
+        console.error('Failed to load data:', error)
       }
     } else {
       router.push('/login')

@@ -264,30 +264,43 @@ const searchMovie = async () => {
           )
           const data = await response.json()
 
-
           if (data.results && data.results.length > 0) {
-            searchResults.value = data.results
-            totalPages.value = Math.min(data.total_pages, 10)  // Max page 10
-
-            // Save new movies to firebase
+            const tmdbResults = []
             for (const movie of data.results) {
               // Check if movie already exists by tmdb_id
               const tmdbQuery = query(moviesRef, where('tmdb_id', '==', movie.id))
               const tmdbQuerySnapshot = await getDocs(tmdbQuery)
 
+              let movieDoc
               if (tmdbQuerySnapshot.empty) {
-                // Only save if movie doesn't exist
-                await addDoc(collection(db, 'movies'), {
+                // Save new movie and get the document reference
+                const docRef = await addDoc(collection(db, 'movies'), {
                   tmdb_id: movie.id,
                   title: movie.title,
-                  title_lower: movie.title.toLowerCase(), // 添加小写标题字段用于搜索
+                  title_lower: movie.title.toLowerCase(),
                   overview: movie.overview,
                   poster_path: movie.poster_path,
                   release_date: movie.release_date,
                   vote_average: movie.vote_average
                 })
+                movieDoc = {
+                  id: docRef.id,
+                  tmdb_id: movie.id,
+                  title: movie.title,
+                  overview: movie.overview,
+                  poster_path: movie.poster_path,
+                  release_date: movie.release_date,
+                  vote_average: movie.vote_average
+                }
+              } else {
+                // Use existing movie document
+                const doc = tmdbQuerySnapshot.docs[0]
+                movieDoc = { id: doc.id, ...doc.data() }
               }
+              tmdbResults.push(movieDoc)
             }
+            searchResults.value = tmdbResults
+            totalPages.value = Math.min(data.total_pages, 10)  // Max page 10
           }
         }
     } catch (error) {
@@ -329,11 +342,12 @@ const createReview = async () => {
     }
 
   try {
-    const reviewsRef = collection(db, 'reviews')
+    const movieId = selectedMovie.value.id; // first save the movie id
+    const reviewsRef = collection(db, 'reviews');
     await addDoc(reviewsRef, {
-      movieId: selectedMovie.value.id,
-      userId: auth.currentUser.uid,  // Use auth.currentUser
-      userName: auth.currentUser.displayName || auth.currentUser.email, // Use displayName or email
+      movieId: movieId,
+      userId: auth.currentUser.uid,
+      userName: auth.currentUser.displayName || auth.currentUser.email,
       rating: rating.value,
       comment: comment.value,
       createdAt: serverTimestamp()
@@ -343,13 +357,14 @@ const createReview = async () => {
     toastMessage.value = "Review created successfully!";
     toastType.value = 'success';
 
-
-    // Reset form and navigate
+    // reset form
     selectedMovie.value = null;
     rating.value = 0;
     comment.value = '';
     currentStep.value = 0;
-     router.push(`/review/${selectedMovie.value.id}`);
+
+    // push to review page
+    router.push(`/review/${movieId}`);
 
   } catch (error) {
       console.error("Error creating review:", error);

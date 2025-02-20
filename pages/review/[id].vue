@@ -20,7 +20,14 @@
       <div class="reviews-list" v-if="reviews.length > 0">
         <div v-for="review in reviews" :key="review.id" class="review-item">
           <div class="review-header">
-            <span class="user-name">{{ review.userName }}</span>
+            <div class="user-info">
+              <img 
+                :src="review.userPhotoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.userName)}&background=random`" 
+                :alt="review.userName"
+                class="user-avatar"
+              />
+              <span class="user-name">{{ review.userName }}</span>
+            </div>
             <span class="review-rating">Scores: {{ review.rating }}/5</span>
           </div>
           <p class="review-content">{{ review.comment }}</p>
@@ -71,17 +78,44 @@ const fetchMovieDetails = async () => {
 }
 
 const formatDate = (timestamp) => {
-    if (!timestamp) return ''; 
+  if (!timestamp) return '';
   try {
-    const date = timestamp.toDate(); 
-    return date.toLocaleDateString([], { 
+    // Handle string date format
+    if (typeof timestamp === 'string') {
+      const date = new Date(timestamp);
+      return date.toLocaleDateString([], {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    // Handle Firestore Timestamp
+    if (timestamp.seconds) {
+      const date = new Date(timestamp.seconds * 1000);
+      return date.toLocaleDateString([], {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    // Handle Date object
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleDateString([], {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+    // Try to convert to Date object if other format
+    const date = new Date(timestamp);
+    return date.toLocaleDateString([], {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
   } catch (error) {
     console.error("Error formatting date:", error);
-    return 'Invalid Date'; 
+    return 'Invalid Date';
   }
 };
 
@@ -163,7 +197,21 @@ onMounted(() => {
 .review-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .user-name {

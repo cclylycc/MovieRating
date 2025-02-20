@@ -69,9 +69,11 @@
         <div v-for="review in latestReviews" :key="review.id" class="p-4 hover:bg-gray-50">
           <div class="flex items-start space-x-4">
             <div class="flex-shrink-0">
-              <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                <span class="text-gray-500 font-medium">{{ review.user.charAt(0) }}</span>
-              </div>
+              <img
+                :src="review.userPhotoURL"
+                :alt="review.user"
+                class="w-10 h-10 rounded-full object-cover"
+              />
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-medium text-gray-900">{{ review.user }}</p>
@@ -97,7 +99,7 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { collection, query, orderBy, limit, getDocs, where, startAt, endAt } from 'firebase/firestore'
+import { collection, query, orderBy, limit, getDocs, where, startAt, endAt, doc, getDoc } from 'firebase/firestore'
 
 const { $firestore } = useNuxtApp()
 const searchQuery = ref('')
@@ -164,33 +166,39 @@ const fetchLatestMovies = async () => {
   }
 }
 
-// Mock data for latest reviews
-const latestReviews = [
-  {
-    id: 1,
-    user: 'MovieLover',
-    movie: 'Inception',
-    rating: 5,
-    comment: 'A visual masterpiece with mind-bending plot.',
-    date: '2 hours ago'
-  },
-  {
-    id: 2,
-    user: 'CinemaFan',
-    movie: 'Interstellar',
-    rating: 4,
-    comment: 'Stunning space scenes with emotional depth.',
-    date: '4 hours ago'
-  },
-  {
-    id: 3,
-    user: 'FilmCritic',
-    movie: 'The Truman Show',
-    rating: 5,
-    comment: 'Jim Carreys performance is absolutely brilliant!',
-    date: '6 hours ago'
+// Latest reviews data
+const latestReviews = ref([])
+
+// Fetch latest reviews
+const fetchLatestReviews = async () => {
+  try {
+    const reviewsRef = collection($firestore, 'reviews')
+    const q = query(reviewsRef, orderBy('createdAt', 'desc'), limit(3))
+    const querySnapshot = await getDocs(q)
+    
+    const reviews = []
+    for (const reviewDoc of querySnapshot.docs) {
+      const reviewData = reviewDoc.data()
+      const movieRef = doc($firestore, 'movies', reviewData.movieId)
+      const movieDoc = await getDoc(movieRef)
+      const movieData = movieDoc.exists() ? movieDoc.data() : null
+
+      reviews.push({
+        id: reviewDoc.id,
+        user: reviewData.userName || 'Anonymous',
+        userPhotoURL: reviewData.userPhotoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(reviewData.userName)}&background=random`,
+        movie: movieData ? movieData.title : 'Unknown Movie',
+        rating: reviewData.rating,
+        comment: reviewData.comment,
+        date: reviewData.createdAt ? new Date(reviewData.createdAt.seconds * 1000).toLocaleString() : 'Unknown date'
+      })
+    }
+    
+    latestReviews.value = reviews
+  } catch (error) {
+    console.error('Error fetching latest reviews:', error)
   }
-]
+}
 
 const navigateToReview = (movieId) => {
   navigateTo(`/review/${movieId}`)
@@ -198,5 +206,6 @@ const navigateToReview = (movieId) => {
 
 onMounted(() => {
   fetchLatestMovies()
+  fetchLatestReviews()
 })
 </script>

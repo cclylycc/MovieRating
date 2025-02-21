@@ -104,7 +104,7 @@
             <h3 class="text-lg font-bold text-gray-800">Quick Links</h3>
             <ul class="space-y-2">
               <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Browse Movies</NuxtLink></li>
-              <li><NuxtLink to="/moviesordbyrating" class="text-gray-600 hover:text-blue-500 text-sm">Top Rated</NuxtLink></li>
+              <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Top Rated</NuxtLink></li>
               <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Latest Reviews</NuxtLink></li>
             </ul>
           </div>
@@ -112,9 +112,9 @@
           <div class="space-y-4">
             <h3 class="text-lg font-bold text-gray-800">Help & Support</h3>
             <ul class="space-y-2">
-              <li><NuxtLink to="/legalstuff" class="text-gray-600 hover:text-blue-500 text-sm">Terms of Use</NuxtLink></li>
-              <li><NuxtLink to="/legalstuff" class="text-gray-600 hover:text-blue-500 text-sm">Privacy Policy</NuxtLink></li>
-              <li><NuxtLink to="/legalstuff" class="text-gray-600 hover:text-blue-500 text-sm">Contact Us</NuxtLink></li>
+              <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Terms of Use</NuxtLink></li>
+              <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Privacy Policy</NuxtLink></li>
+              <li><NuxtLink to="/" class="text-gray-600 hover:text-blue-500 text-sm">Contact Us</NuxtLink></li>
             </ul>
           </div>
           <!-- Social Media -->

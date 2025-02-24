@@ -58,7 +58,7 @@
 
     <!-- Movie List -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div v-for="movie in movies" :key="movie.id" class="bg-white rounded-lg shadow overflow-hidden">
+      <div v-for="movie in sortedMovies" :key="movie.id" class="bg-white rounded-lg shadow overflow-hidden">
         <img 
           :src="movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '/placeholder.png'"
           :alt="movie.title"
@@ -103,21 +103,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { collection, getDocs, query, orderBy, limit, startAfter } from 'firebase/firestore'
+import { ref, onMounted, computed } from 'vue'
+import { useMoviesStore } from '~/stores/movies'
 
-const { $firestore } = useNuxtApp()
-
-const movies = ref([])
+const moviesStore = useMoviesStore()
 const currentPage = ref(1)
 const totalPages = ref(0)
-const lastVisible = ref(null)
 const pageSize = 9
 const sortField = ref('release_date')
 const sortDirection = ref('desc')
-
 const searchQuery = ref('')
-const searchResults = ref([])
+
+// 使用 computed 属性从 store 获取数据
+const searchResults = computed(() => moviesStore.getSearchResults)
+
+// 计算排序后的电影列表
+const sortedMovies = computed(() => {
+  const movies = moviesStore.movies
+  return [...movies].sort((a, b) => {
+    if (sortField.value === 'release_date') {
+      const dateA = new Date(a.release_date || 0)
+      const dateB = new Date(b.release_date || 0)
+      return sortDirection.value === 'desc' ? dateB - dateA : dateA - dateB
+    } else {
+      return sortDirection.value === 'desc' 
+        ? b.vote_average - a.vote_average 
+        : a.vote_average - b.vote_average
+    }
+  })
+})
 
 // Debounce function
 const debounce = (fn, delay) => {
@@ -128,93 +142,31 @@ const debounce = (fn, delay) => {
   }
 }
 
-// Fetch movies lists
-const fetchMovies = async () => {
-  try {
-    const moviesRef = collection($firestore, 'movies')
-    let q
+// Search movies function using store
+const handleSearch = debounce(async () => {
+  await moviesStore.searchMovies(searchQuery.value)
+}, 300)
 
-    if (lastVisible.value && currentPage.value > 1) {
-      q = query(moviesRef, orderBy(sortField.value, sortDirection.value), startAfter(lastVisible.value), limit(pageSize))
-    } else {
-      q = query(moviesRef, orderBy(sortField.value, sortDirection.value), limit(pageSize))
-    }
-
-    const querySnapshot = await getDocs(q)
-    movies.value = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
-
-    if (querySnapshot.docs.length > 0) {
-      lastVisible.value = querySnapshot.docs[querySnapshot.docs.length - 1]
-    }
-
-    // 获取总文档数以计算总页数
-    const totalDocs = await getDocs(collection($firestore, 'movies'))
-    totalPages.value = Math.ceil(totalDocs.size / pageSize)
-  } catch (error) {
-    console.error('Failed to load movies:', error)
-  }
+// handle sort change
+const handleSortChange = async () => {
+  currentPage.value = 1
+  await moviesStore.fetchMovies()
 }
 
 // change pages
 const changePage = async (page) => {
   if (page < 1 || page > totalPages.value) return
   currentPage.value = page
-  if (page === 1) {
-    lastVisible.value = null
-  }
-  await fetchMovies()
+  await moviesStore.fetchMovies()
 }
-
-// handle sort change
-const handleSortChange = async () => {
-  currentPage.value = 1
-  lastVisible.value = null
-  await fetchMovies()
-}
-
-// Search movies function
-const handleSearch = debounce(async () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
-
-  try {
-    const moviesRef = collection($firestore, 'movies')
-    const searchTerms = searchQuery.value.toLowerCase().split(/\s+/)
-    
-    // get all the movies
-    const allMoviesQuery = query(moviesRef, limit(50))
-    const querySnapshot = await getDocs(allMoviesQuery)
-    
-    // filter the movies
-    const filteredMovies = querySnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        title: doc.data().title || ''
-      }))
-      .filter(movie => {
-        const movieTitle = movie.title.toLowerCase()
-        return searchTerms.every(term => movieTitle.includes(term))
-      })
-      .slice(0, 5)  // 5 movies can be more
-    
-    searchResults.value = filteredMovies
-  } catch (error) {
-    console.error('Error searching movies:', error)
-    searchResults.value = []
-  }
-}, 300)
 
 const navigateToReview = (movieId) => {
   navigateTo(`/review/${movieId}`)
 }
 
-onMounted(() => {
-  fetchMovies()
+onMounted(async () => {
+  await moviesStore.fetchMovies()
+  // 计算总页数
+  totalPages.value = Math.ceil(moviesStore.movies.length / pageSize)
 })
 </script>

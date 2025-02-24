@@ -2,7 +2,7 @@
   <div class="space-y-8">
     <!-- Welcome Banner -->
     <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-8">
-      <h1 class="text-4xl font-bold mb-4">Welcome to MovieRating V1.0.2.18</h1>
+      <h1 class="text-4xl font-bold mb-4">Welcome to MovieRating V1.0.2.24</h1>
       <p class="text-xl">Discover great movies, share your viewing experience</p>
     </div>
 
@@ -98,13 +98,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { collection, query, orderBy, limit, getDocs, where, startAt, endAt, doc, getDoc } from 'firebase/firestore'
+import { ref, onMounted, computed } from 'vue'
+import { collection, query, orderBy, limit, getDocs, doc, getDoc } from 'firebase/firestore'
+import { useMoviesStore } from '~/stores/movies'
 
 const { $firestore } = useNuxtApp()
+const moviesStore = useMoviesStore()
 const searchQuery = ref('')
-const lastestMovies = ref([])
-const searchResults = ref([])
+
+// use computed to get data from store
+const lastestMovies = computed(() => moviesStore.getLatestMovies)
+const searchResults = computed(() => moviesStore.getSearchResults)
 
 // Debounce function
 const debounce = (fn, delay) => {
@@ -115,52 +119,15 @@ const debounce = (fn, delay) => {
   }
 }
 
-// Search movies function
+// Search movies function using store
 const handleSearch = debounce(async () => {
-  if (!searchQuery.value.trim()) {
-    searchResults.value = []
-    return
-  }
-
-  try {
-    const moviesRef = collection($firestore, 'movies')
-    const searchTerms = searchQuery.value.toLowerCase().split(/\s+/)
-    
-    // get all the movies
-    const allMoviesQuery = query(moviesRef, limit(50))
-    const querySnapshot = await getDocs(allMoviesQuery)
-    
-    // filter the movies
-    const filteredMovies = querySnapshot.docs
-      .map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        title: doc.data().title || ''
-      }))
-      .filter(movie => {
-        const movieTitle = movie.title.toLowerCase()
-        return searchTerms.every(term => movieTitle.includes(term))
-      })
-      .slice(0, 5)  // 5 movies can be more
-    
-    searchResults.value = filteredMovies
-  } catch (error) {
-    console.error('Error searching movies:', error)
-    searchResults.value = []
-  }
+  await moviesStore.searchMovies(searchQuery.value)
 }, 300)
 
 // get 4 lastestMovies
 const fetchLatestMovies = async () => {
   try {
-    const moviesRef = collection($firestore, 'movies')
-    const q = query(moviesRef, orderBy('release_date', 'desc'), limit(4))
-    const querySnapshot = await getDocs(q)
-    
-    lastestMovies.value = querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }))
+    await moviesStore.fetchLatestMovies()
   } catch (error) {
     console.error('Error fetching latest movies:', error)
   }

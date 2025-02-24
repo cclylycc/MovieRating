@@ -36,9 +36,10 @@
       </div>
       <button
         type="submit"
-        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        :disabled="loading"
+        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
       >
-        Register
+        {{ loading ? 'Registering...' : 'Register' }}
       </button>
     </form>
     <p v-if="error" class="mt-4 text-red-500 text-center">{{ error }}</p>
@@ -49,7 +50,8 @@
     <div class="mt-4">
       <button
         @click="handleGoogleLogin"
-        class="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-md py-2 px-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+        :disabled="loading"
+        class="w-full flex items-center justify-center space-x-2 border border-gray-300 rounded-md py-2 px-4 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
       >
         <svg class="w-5 h-5" viewBox="0 0 24 24">
           <path
@@ -70,74 +72,55 @@
           />
           <path fill="none" d="M1 1h22v22H1z" />
         </svg>
-        <span>Use Google Account</span>
+        <span>{{ loading ? 'Signing in with Google...' : 'Use Google Account' }}</span>
       </button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-
-const { $auth } = useNuxtApp()
+import { ref } from 'vue'
+import { useAuthStore } from '~/stores/auth'
 import { useRouter } from 'vue-router'
+
+const auth = useNuxtApp().$auth
+const authStore = useAuthStore()
 const router = useRouter()
-
-onMounted(() => {
-  const unsubscribe = $auth.onAuthStateChanged((user) => {
-    if (user) {
-      router.push('/')
-
-      const toast = document.createElement('div')
-      const vueInstance = createApp(Toast, {
-        message: 'You have already logged in.',
-        type: 'error'
-      })
-      document.body.appendChild(toast)
-      vueInstance.mount(toast)
-
-      setTimeout(() => {
-        vueInstance.unmount()
-        document.body.removeChild(toast)
-      }, 3000)
-    }
-  })
-
-  onUnmounted(() => {
-    unsubscribe()
-  })
-})
 
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const loading = ref(false)
 const error = ref('')
 
 const handleRegister = async () => {
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match'
+    return
+  }
+
+  loading.value = true
+  error.value = ''
   try {
-    error.value = ''
-    if (password.value !== confirmPassword.value) {
-      error.value = 'Passwords do not match'
-      return
-    }
-    await createUserWithEmailAndPassword($auth, email.value, password.value)
-    alert('Registration successful, going to main page')
+    await authStore.registerWithEmail(auth, email.value, password.value)
     router.push('/')
   } catch (e) {
-    error.value = 'Registration failed, please check your email format or try another email'
-    console.error('Register error:', e)
+    error.value = e.message || 'Registration failed, please check your email format or try another email'
+  } finally {
+    loading.value = false
   }
 }
+
 const handleGoogleLogin = async () => {
+  loading.value = true
+  error.value = ''
   try {
-    error.value = ''
-    const provider = new GoogleAuthProvider()
-    await signInWithPopup($auth, provider)
+    await authStore.loginWithGoogle(auth)
     router.push('/')
   } catch (e) {
-    error.value = 'Google login failed, please try later.'
-    console.error('Google login error:', e)
+    error.value = e.message || 'Google login failed, please try later.'
+  } finally {
+    loading.value = false
   }
 }
 </script>

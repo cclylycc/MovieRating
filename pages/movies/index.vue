@@ -114,10 +114,10 @@ const sortField = ref('release_date')
 const sortDirection = ref('desc')
 const searchQuery = ref('')
 
-// 使用 computed 属性从 store 获取数据
+// use comouted to get data from store
 const searchResults = computed(() => moviesStore.getSearchResults)
 
-// 计算排序后的电影列表
+// calculate sorted movies
 const sortedMovies = computed(() => {
   const movies = moviesStore.movies
   return [...movies].sort((a, b) => {
@@ -166,7 +166,7 @@ const navigateToReview = (movieId) => {
 
 onMounted(async () => {
   await moviesStore.fetchMovies()
-  // 计算总页数
+  // total pages
   totalPages.value = Math.ceil(moviesStore.movies.length / pageSize)
 })
 </script>

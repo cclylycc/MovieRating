@@ -223,9 +223,76 @@ onMounted(() => {
   line-height: 1.5;
 }
 
+.review-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
 .review-date {
   color: #666;
   font-size: 0.9em;
+}
+
+.review-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.like-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.like-button:hover {
+  background: #f3f4f6;
+}
+
+.like-button.liked {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.like-icon {
+  font-size: 1.1em;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.page-button {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.page-button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.page-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info {
+  color: #374151;
 }
 
 .no-reviews {
